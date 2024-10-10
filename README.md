@@ -3,7 +3,7 @@ simple widget to subscribe to events like keyboard input without having to imple
 
 ## example of usage (examples/simple.rs): 
 #### `cargo run --example simple`
-```
+```Rust
 use iced::widget::{center, text};
 use iced::{keyboard::Event, Task};
 use iced_widget_wrapper::wrapper;
