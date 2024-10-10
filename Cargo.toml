@@ -1,5 +1,5 @@
 [package]
-name = "iced_widget_wrapper"
+name = "iced_event_wrapper"
 version = "0.1.0"
 edition = "2021"
 
