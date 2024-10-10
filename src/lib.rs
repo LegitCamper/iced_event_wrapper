@@ -54,7 +54,7 @@ where
     }
 
     fn diff(&self, tree: &mut Tree) {
-        tree.diff_children(&vec![&self.content]);
+        tree.diff_children(&[&self.content]);
     }
 
     fn size(&self) -> Size<Length> {
