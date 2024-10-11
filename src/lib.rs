@@ -1,6 +1,6 @@
 use iced::advanced::layout::{Layout, Limits, Node};
 use iced::advanced::renderer::Style;
-use iced::advanced::widget::{Tree, Widget};
+use iced::advanced::widget::{tree, Tree, Widget};
 use iced::advanced::{Clipboard, Shell};
 use iced::keyboard;
 use iced::mouse::{self, Cursor};
@@ -13,11 +13,17 @@ pub fn wrapper<'a, Message>(
     Wrapper::new(content)
 }
 
+#[derive(Default)]
+struct WrapperState {
+    bounds: Size,
+}
+
 /// Wraps widgets to allow for mouse interactions and events without having to implement them yourself
 pub struct Wrapper<'a, Message> {
     content: Element<'a, Message, Theme, Renderer>,
     on_keyboard_event: Option<Box<dyn Fn(keyboard::Event) -> Message + 'a>>,
     on_mouse_event: Option<Box<dyn Fn(mouse::Event, Point) -> Message + 'a>>,
+    on_bounds_change: Option<Box<dyn Fn(Size) -> Message + 'a>>,
 }
 
 impl<'a, Message> Wrapper<'a, Message> {
@@ -26,9 +32,11 @@ impl<'a, Message> Wrapper<'a, Message> {
             content: content.into(),
             on_keyboard_event: None,
             on_mouse_event: None,
+            on_bounds_change: None,
         }
     }
 
+    /// Allows user to set callback for keyboard events
     pub fn on_keyboard_event(
         mut self,
         on_keyboard_event: impl Fn(keyboard::Event) -> Message + 'a,
@@ -37,6 +45,7 @@ impl<'a, Message> Wrapper<'a, Message> {
         self
     }
 
+    /// Allows user to set callback for mouse events within widget
     pub fn on_mouse_event(
         mut self,
         on_mouse_event: impl Fn(mouse::Event, Point) -> Message + 'a,
@@ -44,11 +53,25 @@ impl<'a, Message> Wrapper<'a, Message> {
         self.on_mouse_event = Some(Box::new(on_mouse_event));
         self
     }
+
+    /// Allows user to set callback for when the bounds changes
+    pub fn on_bounds_change(mut self, on_bounds_change: impl Fn(Size) -> Message + 'a) -> Self {
+        self.on_bounds_change = Some(Box::new(on_bounds_change));
+        self
+    }
 }
 impl<Message> Widget<Message, Theme, Renderer> for Wrapper<'_, Message>
 where
     Renderer: iced::advanced::Renderer,
 {
+    fn tag(&self) -> tree::Tag {
+        tree::Tag::of::<WrapperState>()
+    }
+
+    fn state(&self) -> tree::State {
+        tree::State::new(WrapperState::default())
+    }
+
     fn children(&self) -> Vec<Tree> {
         vec![Tree::new(&self.content)]
     }
@@ -94,7 +117,7 @@ where
 
     fn on_event(
         &mut self,
-        _state: &mut Tree,
+        tree: &mut Tree,
         event: Event,
         layout: Layout<'_>,
         cursor: Cursor,
@@ -103,6 +126,14 @@ where
         shell: &mut Shell<'_, Message>,
         _viewport: &Rectangle,
     ) -> Status {
+        let state = tree.state.downcast_ref::<WrapperState>();
+
+        if let Some(event) = &self.on_bounds_change {
+            if state.bounds != layout.bounds().size() {
+                shell.publish(event(layout.bounds().size()));
+            }
+        }
+
         match event {
             Event::Keyboard(event) => {
                 if let Some(msg) = &self.on_keyboard_event {

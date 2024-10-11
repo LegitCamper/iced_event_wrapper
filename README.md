@@ -10,8 +10,7 @@ use iced_widget_wrapper::wrapper;
 
 pub fn main() -> iced::Result {
     iced::application("Simple Wrapper example", App::update, App::view)
-        // .subscription(App::subscription)
-        .run()
+       .run()
 }
 
 #[derive(Debug, Clone)]

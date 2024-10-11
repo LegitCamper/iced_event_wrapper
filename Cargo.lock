@@ -1392,6 +1392,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "iced_event_wrapper"
+version = "0.1.0"
+dependencies = [
+ "iced",
+]
+
+[[package]]
 name = "iced_futures"
 version = "0.13.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1515,13 +1522,6 @@ dependencies = [
  "rustc-hash 2.0.0",
  "thiserror",
  "unicode-segmentation",
-]
-
-[[package]]
-name = "iced_widget_wrapper"
-version = "0.1.0"
-dependencies = [
- "iced",
 ]
 
 [[package]]

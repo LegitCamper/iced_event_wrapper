@@ -1,11 +1,10 @@
 use iced::widget::{center, text};
 use iced::{keyboard::Event, Task};
-use iced_widget_wrapper::wrapper;
+
+use iced_event_wrapper::wrapper;
 
 pub fn main() -> iced::Result {
-    iced::application("Simple Wrapper example", App::update, App::view)
-        // .subscription(App::subscription)
-        .run()
+    iced::application("Simple Wrapper example", App::update, App::view).run()
 }
 
 #[derive(Debug, Clone)]
