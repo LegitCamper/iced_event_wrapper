@@ -21,6 +21,7 @@ struct WrapperState {
 /// Wraps widgets to allow for mouse interactions and events without having to implement them yourself
 pub struct Wrapper<'a, Message> {
     content: Element<'a, Message, Theme, Renderer>,
+    always_ignore_events: bool,
     on_keyboard_event: Option<Box<dyn Fn(keyboard::Event) -> Message + 'a>>,
     on_mouse_event: Option<Box<dyn Fn(mouse::Event, Point) -> Message + 'a>>,
     on_bounds_change: Option<Box<dyn Fn(Size) -> Message + 'a>>,
@@ -30,6 +31,7 @@ impl<'a, Message> Wrapper<'a, Message> {
     pub fn new(content: impl Into<Element<'a, Message, Theme, Renderer>>) -> Self {
         Wrapper {
             content: content.into(),
+            always_ignore_events: false,
             on_keyboard_event: None,
             on_mouse_event: None,
             on_bounds_change: None,
@@ -57,6 +59,12 @@ impl<'a, Message> Wrapper<'a, Message> {
     /// Allows user to set callback for when the bounds changes
     pub fn on_bounds_change(mut self, on_bounds_change: impl Fn(Size) -> Message + 'a) -> Self {
         self.on_bounds_change = Some(Box::new(on_bounds_change));
+        self
+    }
+
+    /// Allows the widget to return `Status::Ignored` instead of capturing events
+    pub fn always_ignore_events(mut self) -> Self {
+        self.always_ignore_events = true;
         self
     }
 }
@@ -141,7 +149,11 @@ where
             Event::Keyboard(event) => {
                 if let Some(msg) = &self.on_keyboard_event {
                     shell.publish(msg(event));
-                    Status::Captured
+                    if self.always_ignore_events {
+                        Status::Ignored
+                    } else {
+                        Status::Captured
+                    }
                 } else {
                     Status::Ignored
                 }
@@ -151,7 +163,11 @@ where
                     if let Some(point) = cursor.position_in(layout.bounds()) {
                         shell.publish(msg(event, point));
                     }
-                    Status::Captured
+                    if self.always_ignore_events {
+                        Status::Ignored
+                    } else {
+                        Status::Captured
+                    }
                 } else {
                     Status::Ignored
                 }
