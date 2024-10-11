@@ -15,7 +15,7 @@ pub fn wrapper<'a, Message>(
 
 #[derive(Default)]
 struct WrapperState {
-    bounds: Size,
+    bounds: Option<Size>,
 }
 
 /// Wraps widgets to allow for mouse interactions and events without having to implement them yourself
@@ -85,6 +85,9 @@ where
     }
 
     fn layout(&self, tree: &mut Tree, renderer: &Renderer, limits: &Limits) -> Node {
+        let state = tree.state.downcast_mut::<WrapperState>();
+        state.bounds = Some(limits.max());
+
         // generate the child layout
         let child_layout = self
             .content
@@ -126,11 +129,11 @@ where
         shell: &mut Shell<'_, Message>,
         _viewport: &Rectangle,
     ) -> Status {
-        let state = tree.state.downcast_ref::<WrapperState>();
+        let state = tree.state.downcast_mut::<WrapperState>();
 
         if let Some(event) = &self.on_bounds_change {
-            if state.bounds != layout.bounds().size() {
-                shell.publish(event(layout.bounds().size()));
+            if let Some(state_bounds) = state.bounds {
+                shell.publish(event(state_bounds));
             }
         }
 
